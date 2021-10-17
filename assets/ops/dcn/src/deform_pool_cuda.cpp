@@ -4,6 +4,9 @@
 // based on
 // author: Charles Shang
 // https://github.com/torch/cunn/blob/master/lib/THCUNN/generic/SpatialConvolutionMM.cu
+#ifndef AT_CHECK
+#define AT_CHECK TORCH_CHECK
+#endif
 
 #include <torch/extension.h>
 
