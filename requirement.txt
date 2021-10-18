@@ -1,7 +1,7 @@
 pyyaml 
 tqdm 
 tensorboardX 
-opencv-python==4.1.2.30
+opencv-python==4.5.3.56
 anyconfig 
 munch 
 scipy 
@@ -15,3 +15,4 @@ editdistance
 scikit-image 
 imgaug==0.2.8
 
+tqdm
