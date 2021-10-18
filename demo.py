@@ -12,7 +12,8 @@ def main():
     parser = argparse.ArgumentParser(description='Text Recognition Training')
     parser.add_argument('exp', type=str)
     parser.add_argument('--resume', type=str, help='Resume from checkpoint')
-    parser.add_argument('--image_path', type=str, help='image path')
+    # parser.add_argument('--image_path', type=str, help='image path')
+    parser.add_argument('--input_dir', type=str, help='input image dir')
     parser.add_argument('--result_dir', type=str, default='./demo_results/', help='path to save results')
     parser.add_argument('--data', type=str,
                         help='The name of dataloader which will be evaluated on.')
@@ -40,7 +41,8 @@ def main():
     experiment_args.update(cmd=args)
     experiment = Configurable.construct_class_from_config(experiment_args)
 
-    Demo(experiment, experiment_args, cmd=args).inference(args['image_path'], args['visualize'])
+    demo_instance = Demo(experiment, experiment_args, cmd=args)
+    demo_instance.inference(args['input_dir'], args['visualize'])
 
 
 class Demo:
@@ -122,27 +124,32 @@ class Demo:
                         result = ",".join([str(int(x)) for x in box])
                         res.write(result + ',' + str(score) + "\n")
         
-    def inference(self, image_path, visualize=False):
+    def inference(self, input_dir, visualize=False):
         self.init_torch_tensor()
         model = self.init_model()
         self.resume(model, self.model_path)
         all_matircs = {}
         model.eval()
-        batch = dict()
-        batch['filename'] = [image_path]
-        img, original_shape = self.load_image(image_path)
-        batch['shape'] = [original_shape]
         with torch.no_grad():
-            batch['image'] = img
-            pred = model.forward(batch, training=False)
-            output = self.structure.representer.represent(batch, pred, is_output_polygon=self.args['polygon']) 
-            if not os.path.isdir(self.args['result_dir']):
-                os.mkdir(self.args['result_dir'])
-            self.format_output(batch, output)
+            for f in os.listdir(input_dir):
+                image_path = os.path.join(input_dir, f)
+                # print(image_path)
+                batch = dict()
+                batch['filename'] = [image_path]
+                img, original_shape = self.load_image(image_path)
+                batch['shape'] = [original_shape]
+                batch['image'] = img
+                pred = model.forward(batch, training=False)
+                output = self.structure.representer.represent(batch, pred, is_output_polygon=self.args['polygon']) 
+                if not os.path.isdir(self.args['result_dir']):
+                    os.mkdir(self.args['result_dir'])
+                self.format_output(batch, output)
 
-            if visualize and self.structure.visualizer:
-                vis_image = self.structure.visualizer.demo_visualize(image_path, output)
-                cv2.imwrite(os.path.join(self.args['result_dir'], image_path.split('/')[-1].split('.')[0]+'.jpg'), vis_image)
+                if visualize and self.structure.visualizer:
+                    vis_image = self.structure.visualizer.demo_visualize(image_path, output)
+                    output_image_path = os.path.join(self.args['result_dir'], image_path.split('/')[-1].split('.')[0]+'.jpg')
+                    print(output_image_path)
+                    cv2.imwrite(output_image_path, vis_image)
 
 if __name__ == '__main__':
     main()
