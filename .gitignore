@@ -119,3 +119,6 @@ results
 *.pyx
 struture/representers/setup.py
 demo_results
+
+# Datasets
+total_text
