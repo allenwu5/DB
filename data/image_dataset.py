@@ -8,6 +8,7 @@ import numpy as np
 import glob
 from concern.config import Configurable, State
 import math
+from tqdm import tqdm
 
 class ImageDataset(data.Dataset, Configurable):
     r'''Dataset reading from images.
@@ -33,7 +34,7 @@ class ImageDataset(data.Dataset, Configurable):
         self.get_all_samples()
 
     def get_all_samples(self):
-        for i in range(len(self.data_dir)):
+        for i in tqdm(range(len(self.data_dir))):
             with open(self.data_list[i], 'r') as fid:
                 image_list = fid.readlines()
             if self.is_training:
@@ -42,12 +43,20 @@ class ImageDataset(data.Dataset, Configurable):
             else:
                 image_path=[self.data_dir[i]+'/test_images/'+timg.strip() for timg in image_list]
                 print(self.data_dir[i])
-                if 'TD500' in self.data_list[i] or 'total_text' in self.data_list[i]:
+                if 'TD500' in self.data_list[i] or 'total_text' in self.data_list[i] or 'china_steel' in self.data_list[i]:
                     gt_path=[self.data_dir[i]+'/test_gts/'+timg.strip()+'.txt' for timg in image_list]
                 else:
                     gt_path=[self.data_dir[i]+'/test_gts/'+'gt_'+timg.strip().split('.')[0]+'.txt' for timg in image_list]
             self.image_paths += image_path
             self.gt_paths += gt_path
+
+        
+        print(f'Is debug: {self.debug}')
+        debug_sample_count = 1000
+        if self.debug:
+            self.image_paths = self.image_paths[:debug_sample_count]
+            self.gt_paths = self.gt_paths[:debug_sample_count]
+
         self.num_samples = len(self.image_paths)
         self.targets = self.load_ann()
         if self.is_training:
@@ -55,7 +64,7 @@ class ImageDataset(data.Dataset, Configurable):
 
     def load_ann(self):
         res = []
-        for gt in self.gt_paths:
+        for gt in tqdm(self.gt_paths):
             lines = []
             reader = open(gt, 'r').readlines()
             for line in reader:

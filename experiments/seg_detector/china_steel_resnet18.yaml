@@ -10,13 +10,14 @@ define:
             class: Builder
             model: SegDetectorModel
             model_args:
-                backbone: deformable_resnet50
+                backbone: deformable_resnet18
                 decoder: SegDetector
                 decoder_args: 
                     adaptive: True
-                    in_channels: [256, 512, 1024, 2048]
+                    in_channels: [64, 128, 256, 512]
                     k: 50
                 loss_class: L1BalanceCELoss
+
         representer:
             class: SegDetectorRepresenter
             max_candidates: 1000
@@ -39,7 +40,7 @@ define:
         model_saver: 
             class: ModelSaver
             dir_path: model
-            save_interval: 18000
+            save_interval: 180
             signal_path: save
         scheduler: 
             class: OptimizerScheduler
@@ -50,8 +51,8 @@ define:
                 weight_decay: 0.0001
             learning_rate:  
                 class: DecayLearningRate
-                epochs: 1200 # 1200
-        epochs: 1200 # 1200
+                epochs: 20
+        epochs: 20
 
     validation: &validate
         class: ValidationSettings
