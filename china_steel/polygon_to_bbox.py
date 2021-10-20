@@ -49,7 +49,9 @@ for input_text_name in tqdm(listdir(input_txt_dir)):
 
             cropped = img[max_conf_bbox[1]:max_conf_bbox[3],
                         max_conf_bbox[0]:max_conf_bbox[2]]
-            output_path = join(output_dir, f'{name}.jpg')
-            cv2.imwrite(output_path, cropped)
+            h, w, c = cropped.shape
+            if w > 0:
+                output_path = join(output_dir, f'{name}.jpg')
+                cv2.imwrite(output_path, cropped)
         else:
             print(f'{img_path} has no polygon')
