@@ -4,9 +4,10 @@ import os
 import torch
 import cv2
 import numpy as np
-from experiment import Structure, Experiment
+# from experiment import Structure, Experiment
 from concern.config import Configurable, Config
 import math
+from tqdm import tqdm
 
 def main():
     parser = argparse.ArgumentParser(description='Text Recognition Training')
@@ -41,7 +42,10 @@ def main():
     experiment_args.update(cmd=args)
     experiment = Configurable.construct_class_from_config(experiment_args)
 
+    print(args)
     demo_instance = Demo(experiment, experiment_args, cmd=args)
+
+    print('Inference start:')
     demo_instance.inference(args['input_dir'], args['visualize'])
 
 
@@ -131,9 +135,9 @@ class Demo:
         all_matircs = {}
         model.eval()
         with torch.no_grad():
-            for f in os.listdir(input_dir):
+            for f in tqdm(os.listdir(input_dir)):
                 image_path = os.path.join(input_dir, f)
-                # print(image_path)
+
                 batch = dict()
                 batch['filename'] = [image_path]
                 img, original_shape = self.load_image(image_path)
@@ -148,7 +152,7 @@ class Demo:
                 if visualize and self.structure.visualizer:
                     vis_image = self.structure.visualizer.demo_visualize(image_path, output)
                     output_image_path = os.path.join(self.args['result_dir'], image_path.split('/')[-1].split('.')[0]+'.jpg')
-                    print(output_image_path)
+                    
                     cv2.imwrite(output_image_path, vis_image)
 
 if __name__ == '__main__':
