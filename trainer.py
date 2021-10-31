@@ -170,14 +170,16 @@ class Trainer:
         for i, batch in tqdm(enumerate(data_loader), total=len(data_loader)):
             pred = model.forward(batch, training=False)
             output = self.structure.representer.represent(batch, pred)
-            raw_metric, interested = self.structure.measurer.validate_measure(
+
+            # https://github.com/MhLiao/DB/issues/122#issuecomment-762659976
+            raw_metric = self.structure.measurer.validate_measure(
                 batch, output)
             raw_metrics.append(raw_metric)
 
-            if visualize and self.structure.visualizer:
-                vis_image = self.structure.visualizer.visualize(
-                    batch, output, interested)
-                vis_images.update(vis_image)
+            # if visualize and self.structure.visualizer:
+            #     vis_image = self.structure.visualizer.visualize(
+            #         batch, output, interested)
+            #     vis_images.update(vis_image)
         metrics = self.structure.measurer.gather_measure(
             raw_metrics, self.logger)
         return metrics, vis_images
