@@ -1,18 +1,16 @@
 import csv
 from os.path import join
-
+import argparse
 from tqdm import tqdm
+import shutil
 
-label_csv = 'G:/我的雲端硬碟/tradevan/2021_china_steel_ocr/標記與資料說明/public_training_data.csv'
-train_image_dir = 'G:/我的雲端硬碟/colab/DB/datasets/china_steel/train_images'
-train_gts_dir = 'G:/我的雲端硬碟/colab/DB/datasets/china_steel/train_gts'
-
+label_csv = '/content/drive/MyDrive/tradevan/2021_china_steel_ocr/Training Label/public_training_data.csv'
+source_image_dir = '/content/public_training_data/public_training_data'
 ext = '.jpg'
-filenames = []
 
-with open(label_csv, 'r') as f:
-    reader = csv.DictReader(f)
-    for d in tqdm(reader):
+def create_gts(dicts, gts_dir, dest_image_dir, list_path):
+    filenames = []
+    for d in tqdm(dicts):
         filename = d['filename']
         filenames.append(filename)
         label = d['label']
@@ -27,11 +25,32 @@ with open(label_csv, 'r') as f:
 
         poly_class = '0'
         bbox_label = poly + [poly_class]
-        label_file = join(train_gts_dir, f'{filename}{ext}.txt')
+        label_file = join(gts_dir, f'{filename}{ext}.txt')
         with open(label_file, 'w') as l:
             l.write(','.join(bbox_label))
 
-image_list_path = 'G:/我的雲端硬碟/colab/DB/datasets/china_steel/train_list.txt'
-with open(image_list_path, 'w') as f:
-    for filename in filenames:
-        f.write(f'{filename}{ext}\n')
+        source_image_path = join(source_image_dir, f'{filename}{ext}')
+        dest_image_path = join(dest_image_dir, f'{filename}{ext}')
+        shutil.move(source_image_path, dest_image_path)
+
+    with open(list_path, 'w') as f:
+        for filename in filenames:
+            f.write(f'{filename}{ext}\n')
+
+def main(opt):
+    dicts = []
+    with open(label_csv, 'r') as f:
+        for d in csv.DictReader(f):
+            dicts.append(d)
+
+    train_dicts = dicts[:opt.train_size]
+    val_dicts = dicts[opt.train_size:]
+
+    create_gts(train_dicts, '/content/train_gts', '/content/train_images', '/content/train_list.txt')
+    create_gts(val_dicts, '/content/test_gts', '/content/test_images', '/content/test_list.txt')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--train_size', type=int, help='')
+    opt = parser.parse_args()
+    main(opt)
